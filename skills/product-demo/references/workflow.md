@@ -1,0 +1,19 @@
+# Project discovery and incremental work
+
+All commands below are arguments to `node <absolute Skill path>/scripts/run.mjs`. Verify installed `--help` when flags are uncertain. Project inputs belong to `--project`; output belongs to `--output`; a completed or paused run is referenced by its absolute directory with `--run`.
+
+Follow [understanding.md](understanding.md) before any capture or expensive render. For an actual app, read the source route, UI and action implementation, then adapt `demo.config.json` and author `demo.understanding.json` from that evidence. Read-only UI preflight confirms the running app agrees with the plan. Use `analyze --validate` with the installed command's project/config options. A failed gate calls for fixing the explanation, evidence or actual flow, not bypassing it.
+
+Use `init --project <path> --example basic` only for an explicitly requested bundled dashboard check, or `--example second` for its alternate layout. A generated example config is not an app discovery result or completed understanding. Trusted `demo.config.ts` is also supported when a typed local configuration is useful. The CLI does not discover product meaning or decide the story. It needs a URL, allowed origins, readiness condition, serializable UI actions, storyboard and reviewed understanding manifest.
+
+Supported action kinds are `click`, `fill`, `type`, `hover`, `scroll`, `waitFor`, `pause`, `marker`, `screenshot`. Prefer role/name, label or testid locators; text and CSS are fallbacks. Use unique locators and semantic ready states. Artistic pauses are different from waiting for a result. Avoid generic `networkidle` as the only app readiness test.
+
+Storyboard scenes connect `sceneId`, `displayText`, `spokenText`, meaning and visible result to screenshot IDs or clip ranges and interaction event IDs. After capture, inspect the manifest and actual files before refining the edit plan. Do not narrate outcomes missing from the capture. The asset [storyboard.example.json](../assets/storyboard.example.json) illustrates this data shape; it is a template, not a claim about the user's app.
+
+Typical full execution after neural text transmission is authorized: `all --project <path> --config <path>/demo.config.json --output <path>/demo-output --profile web-60 --tts-provider edge-neural --allow-external-tts`. Read [voice.md](voice.md) before first external synthesis. Use `--strict-native-fps` when the user requires native source cadence. Capture may fail that criterion even when a 144 fps presentation can be rendered.
+
+For changes after capture: update the run's `storyboard.json` for speech/title changes and run `narrate --run <path> --voice female --tts-provider edge-neural --allow-external-tts` within prior authorization, then `plan`, `render --profile <profile>`, `inspect`. To change only camera or overlays, edit validated `edit-plan.json` and render/inspect. Use [editing.md](editing.md) to make framing and scene choices. Keep source range time in milliseconds and composition time in integer frames. Preserve the source files and capture manifest; do not overwrite source media with final encodes.
+
+If a project start command is needed, represent executable and arguments separately. Wait for both HTTP and a specific UI ready condition. Track the process the toolkit started and stop only that process; a busy port may belong to someone else.
+
+After a failure, inspect the corresponding ledger, report and input. Correct the cause and repeat only that stage and its dependents. Do not run `all` repeatedly to adjust a camera or subtitle. Limit a recurring defect to two targeted repair cycles, then preserve the run and report what still prevents success. Runtime failure budgets remain in force; never erase them or make cosmetic changes to gain another attempt.

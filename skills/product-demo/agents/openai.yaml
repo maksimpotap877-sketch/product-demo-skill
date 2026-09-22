@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Demo"
+  short_description: "Демо веб-продуктов с русским голосом"
+  default_prompt: "Используй $product-demo: сделай демо этого продукта с русской озвучкой и проверь фактическую частоту записи."

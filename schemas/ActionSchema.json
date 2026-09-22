@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "click",
+        "fill",
+        "type",
+        "hover",
+        "scroll",
+        "waitFor",
+        "pause",
+        "marker",
+        "screenshot"
+      ]
+    },
+    "locator": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "role"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "label"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "testid": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "testid"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "css": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "css"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "value": {
+      "type": "string"
+    },
+    "ms": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 30000
+    },
+    "x": {
+      "type": "number"
+    },
+    "y": {
+      "type": "number"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "runId": "revision-demo",
+  "status": "degraded",
+  "checks": [
+    {
+      "name": "full-decode",
+      "status": "passed",
+      "method": "FFmpeg all video/audio packets decode",
+      "evidence": "assets/demo-orbita-1080p60.mp4"
+    },
+    {
+      "name": "output-frames",
+      "status": "passed",
+      "method": "Decoded frame count and PTS",
+      "evidence": {
+        "count": 1618,
+        "expected": 1618,
+        "minGap": 0.016665999999997183,
+        "maxGap": 0.016667000000001764
+      }
+    },
+    {
+      "name": "monotonic-timestamps",
+      "status": "passed",
+      "method": "All decoded PTS deltas",
+      "evidence": {
+        "fps": 60
+      }
+    },
+    {
+      "name": "output-geometry",
+      "status": "passed",
+      "method": "ffprobe measured pixels",
+      "evidence": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    {
+      "name": "duration",
+      "status": "passed",
+      "method": "Plan vs media duration",
+      "evidence": {
+        "actual": 26.966667,
+        "planned": 26.966666666666665
+      }
+    },
+    {
+      "name": "export-codecs",
+      "status": "passed",
+      "method": "ffprobe codec/pixel/audio metadata",
+      "evidence": {
+        "video": "h264",
+        "pixelFormat": "yuvj420p",
+        "level": 42,
+        "audio": "aac",
+        "sampleRate": "48000"
+      }
+    },
+    {
+      "name": "final-aac-loudness",
+      "status": "passed",
+      "method": "Decoded AAC integrated loudness / true peak",
+      "evidence": {
+        "input_i": "-16.01",
+        "input_tp": "-3.21",
+        "input_lra": "5.10",
+        "input_thresh": "-26.93",
+        "output_i": "-16.11",
+        "output_tp": "-3.22",
+        "output_lra": "5.30",
+        "output_thresh": "-27.00",
+        "normalization_type": "dynamic",
+        "target_offset": "0.11"
+      }
+    },
+    {
+      "name": "source-ranges-and-voice",
+      "status": "passed",
+      "method": "Strict EditPlan validation before render",
+      "evidence": {
+        "schema": "EditPlanSchema",
+        "scenes": [
+          {
+            "sceneId": "overview",
+            "sourceRange": [
+              0,
+              1050.1630859375
+            ],
+            "voiceDurationMs": 3912
+          },
+          {
+            "sceneId": "open",
+            "sourceRange": [
+              950,
+              1850
+            ],
+            "voiceDurationMs": 5376
+          },
+          {
+            "sceneId": "name",
+            "sourceRange": [
+              0,
+              2364.71142578125
+            ],
+            "voiceDurationMs": 3888
+          },
+          {
+            "sceneId": "submit",
+            "sourceRange": [
+              2300,
+              4800
+            ],
+            "voiceDurationMs": 4368
+          },
+          {
+            "sceneId": "result",
+            "sourceRange": [
+              0,
+              5392.72607421875
+            ],
+            "voiceDurationMs": 5304
+          }
+        ]
+      }
+    },
+    {
+      "name": "known-secret-patterns",
+      "status": "passed",
+      "method": "Regex on exported metadata; not a PII guarantee",
+      "evidence": {
+        "demoData": true
+      }
+    },
+    {
+      "name": "unintentional-black-scenes",
+      "status": "passed",
+      "method": "Decoded blackdetect; preset has no intended full black scenes",
+      "evidence": []
+    },
+    {
+      "name": "rendered-animation-frames",
+      "status": "not-tested",
+      "method": "Decoded progress edge geometry versus absolute composition frame; only sampled layer proof",
+      "evidence": "render-layer-proof-web-60.json"
+    },
+    {
+      "name": "native-capture-144",
+      "status": "degraded",
+      "method": "Capture provenance and separate benchmark; output fps excluded",
+      "evidence": "Hybrid presentation uses screenshots and source clips; native144 not asserted"
+    },
+    {
+      "name": "visual-review",
+      "status": "passed",
+      "method": "Agent viewed final decoded contact sheet and frames 0,289,967,1498,1617; no motion or listening claim",
+      "evidence": {
+        "file": "review/visual-review-web-60.json",
+        "renderSha256": "cd82b4a6416131b050a73581a68ff363fa1addc62334e814ddaf61aa04f21575",
+        "scope": "selected decoded frames"
+      }
+    },
+    {
+      "name": "motion-review",
+      "status": "not-tested",
+      "method": "Watch at normal speed; still frames do not prove motion",
+      "evidence": null
+    },
+    {
+      "name": "subjective-listening",
+      "status": "not-tested",
+      "method": "Listen to real Russian narration",
+      "evidence": null
+    }
+  ],
+  "limitations": [
+    "Native 144 capture is a separate gate; this artifact is hybrid.",
+    "No word alignment: captions follow complete speech segments.",
+    "Agent visual/listening status is recorded separately, never inferred from ffprobe.",
+    "Static source scenes intentionally freeze product state; animated camera is generated by Remotion."
+  ],
+  "provenance": {
+    "toolkitVersion": "0.2.0",
+    "exportedWith": "0.3.0",
+    "sha256": "cd82b4a6416131b050a73581a68ff363fa1addc62334e814ddaf61aa04f21575",
+    "sourceFps": 25,
+    "renderFps": 60
+  }
+}

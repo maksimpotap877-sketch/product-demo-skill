@@ -1,0 +1,13 @@
+# Remotion documentation and MCP
+
+Remotion renders this toolkit's frame-based React composition. Documentation access helps the agent implement the edit; it does not choose the story, modify source files or render the video on the agent's behalf.
+
+Prefer the official `remotion-docs` Skill when it is installed. Read its `SKILL.md`, search the documented public index, and fetch relevant Remotion pages with a `.md` suffix before implementing unfamiliar APIs. Without that Skill, use current official pages directly. Useful references are [spring](https://www.remotion.dev/docs/spring), [multiple frame rates](https://www.remotion.dev/docs/multiple-fps), and [spring transition timing](https://www.remotion.dev/docs/transitions/timings/springtiming). Match APIs to the installed Remotion version.
+
+The official [Remotion MCP](https://www.remotion.dev/docs/ai/mcp) is deprecated. Its one `remotion-documentation` tool searches documentation; it exposes no editing, rendering, TTS or capture tools. The hosted service can be retired, and its index can be older than the site. Do not make the reusable demo workflow depend on its availability or install it automatically in each project.
+
+When the user explicitly asks to connect it, check the existing Codex MCP configuration first. The official npm package is `@remotion/mcp`; verify its current official source and pin the version. Configure a separate user-level stdio runtime with argument arrays and no secrets, preserving unrelated config. Confirm initialization, tools/list and one real documentation query. Report those separately from merely writing a config entry. On the original installation host, `@remotion/mcp@4.0.527` was configured as `remotion-documentation` and a real spring/timing query succeeded on 2026-09-22; that is historical evidence, not a guarantee for another host.
+
+For normal ongoing work, Remotion recommends its [Agent Skills](https://www.remotion.dev/docs/ai/skills), including `remotion-docs`. Install only the specific official skills the task needs, then verify the client discovers them. An existing session may need a reload before newly connected MCP tools enter its tool catalog. Generic API questions need no account login; never send private footage, narration or page data as documentation search queries.
+
+Implementation rules backed by those APIs: obtain `fps` from `useVideoConfig`; derive timing in frames from seconds so exports preserve pacing; use `spring` damping and overshoot clamping deliberately for UI camera moves. A low transition rest threshold avoids cutting a spring off early. Check the resulting frames and normal-speed playback; choosing a spring parameter alone does not prove a good edit.

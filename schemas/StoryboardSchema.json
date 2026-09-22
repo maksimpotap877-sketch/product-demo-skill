@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "scenes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sceneId": {
+            "type": "string"
+          },
+          "meaning": {
+            "default": "",
+            "type": "string"
+          },
+          "visibleResult": {
+            "default": "",
+            "type": "string"
+          },
+          "displayText": {
+            "type": "string"
+          },
+          "spokenText": {
+            "type": "string"
+          },
+          "eventIds": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pronunciations": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "screenshotId": {
+            "type": "string"
+          },
+          "sourceScreenshot": {
+            "type": "string"
+          },
+          "clipId": {
+            "type": "string"
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "screenshot",
+              "video"
+            ]
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "hero",
+              "product",
+              "detail",
+              "outro"
+            ]
+          },
+          "eyebrow": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "durationSec": {
+            "type": "number",
+            "minimum": 0.5,
+            "maximum": 120
+          },
+          "playbackRate": {
+            "type": "number",
+            "minimum": 0.5,
+            "maximum": 2
+          },
+          "camera": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "scale": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 3
+                },
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "at",
+                "scale",
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "sourceStartMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "sourceEndMs": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "sceneId",
+          "meaning",
+          "visibleResult",
+          "displayText",
+          "spokenText",
+          "eventIds"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "title",
+    "scenes"
+  ],
+  "additionalProperties": false
+}

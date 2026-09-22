@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "title": "Демонстрация результата",
+  "scenes": [
+    {
+      "sceneId": "overview",
+      "meaning": "Показать исходное состояние приложения",
+      "visibleResult": "На экране видна рабочая область",
+      "displayText": "Рабочая область",
+      "spokenText": "Начнём с рабочей области и покажем один понятный результат.",
+      "eventIds": [],
+      "screenshotId": "overview"
+    }
+  ]
+}
