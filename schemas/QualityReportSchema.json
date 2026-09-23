@@ -19,6 +19,22 @@
         "degraded"
       ]
     },
+    "artifactSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "planSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "deliveryStatus": {
+      "type": "string",
+      "enum": [
+        "review-candidate",
+        "changes-required",
+        "reviewed"
+      ]
+    },
     "checks": {
       "type": "array",
       "items": {

@@ -13,6 +13,8 @@ import {voicesPreview,narrate,readPreferences} from './narration.js';
 import {planRun} from './planning.js';
 import {renderRun} from './rendering.js';
 import {inspectRun} from './qa.js';
+import {createReviewDraft,importEditorialReview} from './editorial-review.js';
+import {proofRun} from './proof.js';
 import {previewRun} from './preview.js';
 import {installSkill,skillStatus,uninstallSkill} from './install.js';
 import {createUnderstandingDraft,validateUnderstanding,assertUnderstanding} from './understanding.js';
@@ -37,8 +39,8 @@ async function pipeline(o:any,resumed?:{cfg:DemoConfig;dir:string;startStage:str
    if(stage==='plan')await planRun(dir,cfg.profile);
    if(stage==='render')rendered=await renderRun(dir,cfg.profile);
   }
-  const report=await inspectRun(dir,cfg.profile);await checkpoint(dir,'complete',report.status);
-  emit({run:dir,render:rendered??await readJson(path.join(dir,`renders/render-${cfg.profile}.json`)),quality:report.status},o);
+  const report=await inspectRun(dir,cfg.profile);await checkpoint(dir,report.deliveryStatus==='reviewed'?'complete':'review',report.deliveryStatus??'review-candidate');
+  emit({run:dir,render:rendered??await readJson(path.join(dir,`renders/render-${cfg.profile}.json`)),quality:report.status,deliveryStatus:report.deliveryStatus},o);
   if(cfg.strictNativeFps){await checkpoint(dir,'native144','blocked','Hybrid artifact saved; native144 capture gate not passed.');process.exitCode=3;}
   else if(report.status==='failed')process.exitCode=1;
  }catch(e){await checkpoint(dir,stage,'failed',e instanceof Error?e.message:String(e));throw e;}
@@ -68,7 +70,9 @@ const voices=cli.command('voices');common(voices.command('preview')).action(asyn
 common(cli.command('narrate')).action(async o=>{if(o.dryRun)return emit({action:'narrate',externalRequests:0,amount:0},o);const dir=runDir(o);let saved:Partial<DemoConfig>={};try{saved=DemoConfigSchema.parse(await readJson(path.join(dir,'resolved-config.json')));}catch(e:any){if(e.code!=='ENOENT')throw e;}emit(await narrate(dir,{voice:o.voice??saved.voice,voiceId:o.voiceId??saved.voiceId,language:o.language??saved.language,provider:o.ttsProvider??saved.ttsProvider,allowExternalTts:o.allowExternalTts??saved.allowExternalTts,speechRatePercent:o.speechRate??saved.speechRatePercent,narrationFile:o.narrationFile,savePreference:o.saveVoicePreference}),o);});
 common(cli.command('plan')).action(async o=>{if(o.dryRun)return emit({action:'plan'},o);emit(await planRun(runDir(o),o.profile),o);});
 common(cli.command('render')).action(async o=>{if(o.dryRun)return emit({action:'render'},o);emit(await renderRun(runDir(o),o.profile,o.analysis),o);});
-common(cli.command('inspect')).action(async o=>{if(o.dryRun)return emit({action:'inspect'},o);emit(await inspectRun(runDir(o),o.profile),o);});
+common(cli.command('proof')).option('--scene <id>','Representative scene ID; repeat for up to four scenes',(id:string,ids:string[])=>[...ids,id],[]).action(async o=>{if(o.dryRun)return emit({action:'proof',scenes:o.scene},o);emit(await proofRun(runDir(o),o.profile,o.scene),o);});
+common(cli.command('inspect')).action(async o=>{if(o.dryRun)return emit({action:'inspect'},o);const report=await inspectRun(runDir(o),o.profile);emit(report,o);if(report.status==='failed')process.exitCode=1;});
+common(cli.command('review')).option('--init','Create an unapproved editorial review draft for this exact export').option('--file <path>','Import reviewer evidence JSON for this exact export').action(async o=>{if(!!o.init===!!o.file)throw new Error('Choose exactly one: review --init or review --file <path>.');if(o.dryRun)return emit({action:'review',mode:o.init?'draft':'import'},o);emit(o.init?await createReviewDraft(runDir(o),o.profile):await importEditorialReview(runDir(o),path.resolve(o.file),o.profile),o);});
 common(cli.command('preview')).option('--port <port>','Loopback port',Number,0).action(async o=>{if(o.dryRun)return emit({action:'preview',host:'127.0.0.1'},o);const p=await previewRun(runDir(o),o.port,o.profile);emit({url:p.url,run:runDir(o)},o);process.on('SIGINT',()=>p.server.close());});
 common(cli.command('all')).action(async o=>pipeline(o));
 common(cli.command('resume')).action(async o=>{

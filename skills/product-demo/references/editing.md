@@ -1,33 +1,56 @@
-# Product edit decisions
+# Монтаж: отбор, геометрия, движение
 
-Start with one observed benefit and one completed interaction. Give each scene a purpose: establish the product, show the action, reveal the relevant detail, and show the actual result. Vary framing to support this sequence. Keep large titles mainly for the opening and conclusion; let the working UI occupy the screen during interaction. Avoid repeating the same title, frame and progress strip for every scene.
+## Монтажный лист
 
-The config's `presentation` is `cinematic` by default; `classic` preserves the earlier presentation. Storyboard `layout` accepts `hero`, `product`, `detail`, `outro`. These are editable choices, not substitutes for reviewing the composition. Preserve the user's branding and tone rather than applying arbitrary decoration.
+Каждая сцена отвечает на один вопрос зрителя. Запиши её назначение, реальное исходное состояние, действие, результат, source in/out, реплику, фокус и причину удержания кадра. У обучающего ролика есть время на чтение; у краткого обзора меньше шагов. Не скрывай отсутствие результата украшениями.
 
-Each storyboard scene can set `sourceKind` to `screenshot` or `video`, `durationSec`, `playbackRate`, and `camera`. Camera cues contain `at` from 0 to 1 within the scene, `scale` from 1 to 3, and normalized source coordinates `x`, `y` from 0 to 1. Times must increase strictly. The planner converts cues to frame positions for the chosen output fps. For example:
+Для исправления создай таблицу `таймкод | симптом | источник причины | изменение | проверка`. Сравни исходный клип и экспорт на одинаковом событии. Сначала устраняй крупную проблему: неверное кадрирование, паузу, скачок состояния, затем косметику.
+
+## Поддерживаемый план
+
+У сцены storyboard явно укажи `sourceKind: video`, существующий `clipId`, `sourceStartMs`, `sourceEndMs`; для неподвижного состояния — `sourceKind: screenshot` и существующий `screenshotId`. Время источника — миллисекунды. Снимок не доказывает записанное действие. `eventIds` выбирает реальные события; координаты должны относиться к тому же источнику.
+
+`durationSec` задаёт продолжительность сцены, `playbackRate` — скорость её видео. Обычный интерфейс показывай при 1×. Если голос или клип не помещается, пересмотри сцену/реплику; не ускоряй длинную речь и не дополняй все сцены равными пустыми паузами. Общий `durationSec` конфигурации — минимум, а не команда добавить пустое время. При нехватке авторского плана planner сообщает ошибку.
+
+Пример спокойного плана с явным источником:
 
 ```json
 {
   "sceneId": "save-result",
-  "meaning": "Show that the new collection exists",
-  "visibleResult": "The new collection appears in the library",
-  "displayText": "Подборка готова",
+  "meaning": "Показать действие и подтверждение сохранения",
+  "visibleResult": "Новая подборка появилась в библиотеке",
+  "displayText": "Подборка сохранена",
   "spokenText": "Подборка сохранена в библиотеке.",
-  "screenshotId": "saved",
-  "sourceKind": "screenshot",
-  "layout": "outro",
-  "durationSec": 4,
-  "camera": [
-    {"at": 0, "scale": 1.3, "x": 0.55, "y": 0.45},
-    {"at": 1, "scale": 1.1, "x": 0.5, "y": 0.5}
-  ]
+  "sourceKind": "video",
+  "clipId": "main",
+  "sourceStartMs": 12000,
+  "sourceEndMs": 16500,
+  "durationSec": 4.5,
+  "layout": "product",
+  "camera": [{"at": 0, "scale": 1, "x": 0.5, "y": 0.5}]
 }
 ```
 
-Use a real action clip for clicks, typing or scrolling. Set `clipId`, `sourceStartMs`, `sourceEndMs` from the capture manifest and inspect the actual clip. Trim preparation and dead time, but retain enough context before the action and enough time to read the result. A screenshot can hold a completed state; it must not impersonate a recorded interaction. A generated cursor interpolates measured click endpoints, not a measured continuous pointer trajectory.
+Значения примера заменяются измерениями своего клипа. Не копируй выдуманный ID. Прямой `edit-plan.json` использует `outputStartFrame`, `outputDurationFrames`, camera `frame`; не запускай `plan` после его ручного изменения. При передаче `--profile` CLI читает `edit-plan-<profile>.json` — редактируй именно выбранный файл.
 
-Focus camera movement on the UI element being discussed. Keep the target, cursor, captions and relevant surrounding context visible at maximum zoom. Make the useful text readable at the final output size. Use a restrained move that settles before the click or result; avoid constant motion that competes with the product. Match narration to the moment the feature becomes visible. Never accelerate long speech merely to fit a preset shot.
+## Геометрия и камера
 
-Review the cut as a whole: opening clarity, dead time, repeated framing, abrupt scale jumps, cursor accuracy, caption placement and a conclusive result. Inspect before/at/after clicks, all camera extremes and transitions. Check normal-speed playback separately; screenshots and a 144 fps file header cannot establish smooth motion. A decorative counter or progress animation does not prove the product footage has native 144 fps.
+Версия 0.4 сохраняет пропорции источника и показывает весь кадр при scale=1. Рабочая область стабильна между ролями сцен. Для разных источников план сохраняет `sourcePixels` на сцену; renderer проверяет размеры по реальному файлу. Нельзя растянуть 16:9 в произвольный прямоугольник или скрыто применить cover.
 
-For revisions, edit the run's storyboard and regenerate plan/render/QA. Re-narrate only if speech changed. If editing `edit-plan.json` directly, render/inspect without running `plan`, which would regenerate it. Reuse capture unless the product state or interaction itself must change. Preserve the old result and report what changed.
+По умолчанию камера статична, переход — прямой cut. `camera` содержит `at` от0 до1, `scale` от1 до3, координаты центра `x/y` от0 до1. Ключи должны строго возрастать и после округления в выходные кадры. Если нужен акцент: удержание контекста → один плавный подход → неподвижное действие → чтение результата. Не превращай всю сцену в непрерывный медленный zoom.
+
+Деталь можно кадрировать намеренно. Проверь все нужные элементы при каждом крайнем положении: текст, курсор, раскрытое меню, подтверждение. Сохрани одинаковые положение/масштаб для продолжающегося действия. Для новой крупности используй понятную склейку, не растворяй два разных интерфейса друг в друга.
+
+Общий sampler сначала ограничивает конечные положения камеры, затем плавно интерполирует transform; это устраняет резкий упор в границу посреди движения. Preflight проверяет геометрию и экстремальные скорости. Числа не заменяют визуальную оценку намеренного крупного плана.
+
+Конец короткого видео удерживается на его собственном последнем кадре через Remotion Freeze. `holdPath` не должен переключать состояние или резкость; вместо чужого снимка используй отдельную осмысленную сцену. Перемещение дополнительного курсора между измеренными кликами — постановочное, не измеренная непрерывная траектория. Если курсор уже записан в пикселях, не добавляй второй слой.
+
+## Ритм и речь
+
+Ориентир для простого действия: около0.4–0.8с спокойного контекста до него, около0.8–1.5с на результат. Это стартовые рекомендации; сложная таблица требует больше времени. Убери загрузку, холостые переезды, ожидание сети и повторные исправления ввода. Состояние «сохранено» должно быть действительно видно, а не только произнесено.
+
+Штатная сегментная речь начинается через250мс от начала сцены. Произвольные voice-offset и пословная синхронизация не поддержаны: если этого недостаточно, осмысленно раздели сцены или подготовь локальный полный аудиотрек. Не выдавай приближённое выделение слов по числу символов за точное выравнивание.
+
+Перед длинным экспортом проверь выбранную сцену с настоящим сложным действием, теми же монтажными функциями и целевым размером. Посмотри важные кадры и доступное нормальное воспроизведение. После этого рендерь целое и отдельно проверь весь MP4, включая склейки соседних сцен и непрерывность звука. Изменение монтажа не требует повторного capture или TTS без изменения исходных действий/текста.
+
+Команда проверочного монтажа: `proof --run <absolute-run> --profile web-60 --scene save-result --scene next-scene`. Выберите существующие sceneId, от одного до четырёх. Для каждой сцены она создаёт отдельное видео теми же функциями, сохраняет первые/средние/последние кадры и отчёт в review/proof-<profile>. Эти отдельные файлы не воспроизводят склейку между выбранными сценами; проверяйте её в полном MP4. Звук берётся из существующего микса с соответствующего положения основного таймлайна, без финальной нормализации громкости полного экспорта. Длинную сцену сначала осмысленно разбейте в основном плане. Вызов не делает новой записи или TTS, не обходит общий журнал ошибок и не заменяет просмотр полного ролика.

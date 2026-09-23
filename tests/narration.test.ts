@@ -76,7 +76,10 @@ test('real Windows TTS: rerun cache, single-text invalidation, WAV import and co
     await writeFile(path.join(runDir, 'storyboard.json'), JSON.stringify({...storyboard, scenes: [storyboard.scenes[0]]}));
     const imported = await narrate(runDir, {...options, narrationFile: importedPath});
     assert.equal(imported.segments[0].sha256, first.segments[0].sha256);
-    assert.equal(imported.synthetic, false);
+    assert.equal(imported.synthetic, null);
+    assert.equal(imported.voiceId, null);
+    assert.equal(imported.voice, 'unknown');
+    assert.match(imported.disclosure, /человеческую или синтетическую/);
     const decoded = await inspectNarrationAudio(path.join(runDir, imported.segments[0].path));
     assert.equal(decoded.fullDecode, 'passed');
     const mp3 = path.join(temporary, 'импорт с пробелами.mp3');

@@ -94,7 +94,7 @@ export async function validateUnderstanding(options:{project:string;config:Under
   if(!relativeInside(lexicalRoot,manifestPath)||!isAllowedEvidencePath(path.relative(lexicalRoot,manifestPath),'ui'))return fail(['analysis_path_must_be_inside_project_and_non_sensitive_json']);
   let raw:string,manifest:UnderstandingManifest;
   try{const actual=await realpath(manifestPath);if(!relativeInside(project,actual)||!isAllowedEvidencePath(path.relative(project,actual),'ui'))return fail(['analysis_realpath_outside_project']);const s=await stat(actual);if(!s.isFile()||s.size>1_000_000)return fail(['analysis_file_invalid_or_too_large']);raw=await readFile(actual,'utf8');noSensitivePatterns(raw);manifest=UnderstandingManifestSchema.parse(JSON.parse(raw));}
-  catch(e:any){if(e?.code==='ENOENT')return fail(['analysis_missing']);return fail([e?.message==='sensitive_pattern_in_evidence'?'sensitive_pattern_in_analysis':'analysis_schema_invalid']);}
+  catch(e:any){if(e?.code==='ENOENT')return fail(['analysis_missing']);if(e instanceof z.ZodError)return fail(['analysis_schema_invalid',...e.issues.slice(0,12).map(i=>`analysis_field:${i.path.map(String).join('.')||'<root>'}:${i.code}${i.code==='invalid_type'?':expected-'+i.expected:''}`)]);return fail([e?.message==='sensitive_pattern_in_evidence'?'sensitive_pattern_in_analysis':'analysis_schema_invalid']);}
   const issues:string[]=[];const now=(options.now||new Date()).getTime();
   if(manifest.status!=='ready')issues.push('analysis_is_draft');
   if(manifest.authoredBy.trim().length<2||placeholders.test(manifest.authoredBy))issues.push('analysis_author_missing');

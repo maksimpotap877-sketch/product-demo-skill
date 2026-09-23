@@ -40,13 +40,17 @@ test('loopback preview serves actual allowlisted media, ranges and escaped text;
     await symlink(privateDir, path.join(runDir, 'escaped-link'), process.platform === 'win32' ? 'junction' : 'dir');
     await writeJson(path.join(runDir, 'edit-plan.json'), {profile: {name: 'web-60', width: 128, height: 72, fps: 12}});
     await writeJson(path.join(runDir, 'renders', 'render-web-60.json'), {file: video});
-    await writeJson(path.join(runDir, 'review', 'quality-report.json'), {status: 'degraded', checks: [{status: 'not-tested', name: 'fixture'}]});
+    // An old report claiming approval without an artifact/plan binding must never be served as approved.
+    await writeJson(path.join(runDir, 'review', 'quality-report-web-60.json'), {status: 'degraded', deliveryStatus: 'reviewed', checks: [{status: 'passed', name: 'fixture'}]});
     await writeJson(path.join(runDir, 'storyboard.json'), {title: '<script>window.PWNED=true</script>', scenes: [{displayText: '<img src=x onerror=alert(1)>', spokenText: 'Локальная тестовая страница'}]});
     await writeJson(path.join(runDir, 'narration', 'narration-manifest.json'), {segments: [{sceneId: 'safe', path: 'narration/fixture.wav'}, {sceneId: 'traversal', path: '../private/.env'}, {sceneId: 'junction', path: 'escaped-link/.env'}, {sceneId: 'absolute', path: path.join(privateDir, '.env')}]});
     const preview = await previewRun(runDir); server = preview.server;
     assert.equal((server.address() as import('node:net').AddressInfo).address, '127.0.0.1');
     const page = await get(preview.url, '/');
     assert.equal(page.status, 200);
+    assert.ok(page.data.toString().includes('review-candidate'));
+    assert.equal(JSON.parse((await get(preview.url, '/media/report')).data.toString()).deliveryStatus, 'review-candidate');
+    assert.equal((await get(preview.url, '/media/contact')).status, 404, 'An unbound report must not expose a stale contact sheet.');
     assert.match(String(page.headers['content-security-policy']), /default-src 'self'/);
     assert.ok(page.data.toString().includes('&lt;script&gt;'));
     assert.ok(!page.data.toString().includes('<script>window.PWNED'));

@@ -128,6 +128,26 @@
           "sourcePath": {
             "type": "string"
           },
+          "sourcePixels": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 7680
+              },
+              "height": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 7680
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
           "holdPath": {
             "type": "string"
           },

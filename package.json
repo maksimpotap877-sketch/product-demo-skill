@@ -1,6 +1,6 @@
 {
   "name": "product-demo-toolkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Переносимый Skill: разбор кода, запись сайта, русская озвучка и монтаж Remotion",
   "type": "module",
   "private": true,

@@ -19,11 +19,11 @@ export interface NarrationSegment {
   spokenText?: string; maxVolumeDb: number; meanVolumeDb: number; fullDecode: 'passed';
 }
 export interface NarrationManifest {
-  schemaVersion: 1; runId: string; createdAt: string; provider: string; voiceId: string;
+  schemaVersion: 1; runId: string; createdAt: string; provider: string; voiceId: string | null;
   language: string; voice: string; segments: NarrationSegment[]; fullTrack?: NarrationSegment;
   cost: {amount: number; currency: 'USD'; externalRequests: number; estimated: boolean};
   status: 'passed'; alignment: 'segment' | 'none'; subjectiveListening: 'not-tested';
-  synthetic: boolean; disclosure: string; sourceHash: string;
+  synthetic: boolean | null; disclosure: string; sourceHash: string;
   settings: Record<string, unknown>; semanticSync?: string;
 }
 const scriptsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts');
@@ -242,7 +242,7 @@ export async function narrate(runDir: string, options: NarrationOptions = {}): P
   const segmentsDir = path.join(runDir, 'narration', 'segments');
   await mkdir(segmentsDir, {recursive: true});
   const manifest: NarrationManifest = {
-    schemaVersion: 1, runId: path.basename(runDir), createdAt: new Date().toISOString(), provider, voiceId: 'user-recording', language, voice: gender, segments: [], cost: {amount: 0, currency: 'USD', externalRequests: 0, estimated: false}, status: 'passed', alignment: 'segment', subjectiveListening: 'not-tested', synthetic: !options.narrationFile, disclosure: options.narrationFile ? 'Пользовательская запись.' : provider === 'edge-neural' ? 'Озвучка создана нейросетевым голосом Microsoft Svetlana/Dmitry через онлайн-сервис Edge.' : 'Озвучка создана синтетическим голосом Windows.', sourceHash: createHash('sha256').update(storyboardText).digest('hex'), settings: {rate, speechRatePercent, volume: 100, pronunciations: options.pronunciations ?? {}, ...(provider === 'edge-neural' ? {externalTextTransmissionAuthorized: true, externalTextDestination: 'Microsoft Edge online speech', client: `edge-tts ${EDGE_VERSION}`, costExplanation: 'Consumer speech service without metered API/key; no payment request made', commercialPublicationRights: 'not-verified', fallback: 'disabled'} : {})}
+    schemaVersion: 1, runId: path.basename(runDir), createdAt: new Date().toISOString(), provider, voiceId: null, language, voice: options.narrationFile ? 'unknown' : gender, segments: [], cost: {amount: 0, currency: 'USD', externalRequests: 0, estimated: false}, status: 'passed', alignment: 'segment', subjectiveListening: 'not-tested', synthetic: options.narrationFile ? null : true, disclosure: options.narrationFile ? 'Импортирован локальный аудиофайл. Происхождение и голос не подтверждены: файл может содержать человеческую или синтетическую речь.' : provider === 'edge-neural' ? 'Озвучка создана нейросетевым голосом Microsoft Svetlana/Dmitry через онлайн-сервис Edge.' : 'Озвучка создана синтетическим голосом Windows.', sourceHash: createHash('sha256').update(storyboardText).digest('hex'), settings: {rate, speechRatePercent, volume: 100, pronunciations: options.pronunciations ?? {}, ...(options.narrationFile ? {importProvenance: 'unknown; importing audio does not establish the original voice or synthesis provider'} : {}), ...(provider === 'edge-neural' ? {externalTextTransmissionAuthorized: true, externalTextDestination: 'Microsoft Edge online speech', client: `edge-tts ${EDGE_VERSION}`, costExplanation: 'Consumer speech service without metered API/key; no payment request made', commercialPublicationRights: 'not-verified', fallback: 'disabled'} : {})}
   };
   if (options.narrationFile) {
     const imported = path.resolve(options.narrationFile);
@@ -270,7 +270,7 @@ export async function narrate(runDir: string, options: NarrationOptions = {}): P
     } else {
       manifest.alignment = 'none';
       manifest.fullTrack = {sceneId: '__full_narration__', path: relative(runDir, original), ...audio, sha256, alignment: 'none', cacheHit: false};
-      manifest.semanticSync = 'not-tested: continuous user recording, no per-scene timing map supplied';
+      manifest.semanticSync = 'not-tested: continuous imported audio, no per-scene timing map supplied';
     }
   } else {
     const voices = await listNarrationVoices(language, provider as 'windows-sapi' | 'edge-neural');

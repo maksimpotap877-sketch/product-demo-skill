@@ -93,7 +93,7 @@ async function captureReviewed(config:CaptureConfig,runDir:string,reviewedSource
   if(config.strictNativeFps)throw new Error('strict_native_fps_blocked: public Playwright backend has no verified native 144 fps; inspect benchmark and explicitly select hybrid mode');
   const captureDir=path.join(runDir,'capture');await mkdir(path.join(captureDir,'clips'),{recursive:true});await mkdir(path.join(captureDir,'screenshots'),{recursive:true});
   const projectFingerprint=await captureInputFingerprint(config);
-  const inputHash=hash({url:config.url,actions:config.actions,viewportCss:config.viewportCss,capturePixels:config.capturePixels,auth:config.auth,allowedOrigins:config.allowedOrigins,backend:'playwright-public-recordVideo',backendRevision:3,toolVersion:VERSION,reviewedSourceHash,projectFingerprint:projectFingerprint.digest});
+  const inputHash=hash({url:config.url,actions:config.actions,viewportCss:config.viewportCss,capturePixels:config.capturePixels,auth:config.auth,allowedOrigins:config.allowedOrigins,backend:'playwright-public-recordVideo',backendRevision:4,toolVersion:VERSION,reviewedSourceHash,projectFingerprint:projectFingerprint.digest});
   const manifestPath=path.join(captureDir,'capture-manifest.json');
   try{const prior=await readJson(manifestPath);if(projectFingerprint.complete&&prior.inputHash===inputHash&&prior.complete&&await validateCaptureCacheAssets(prior,runDir))return{...prior,cacheHit:true};}catch{}
   const server=await ensureServer(config,runDir);
@@ -125,7 +125,7 @@ async function captureReviewed(config:CaptureConfig,runDir:string,reviewedSource
       const item=activeEvent;let loc:Locator|undefined;
       if(action.locator){loc=await uniqueLocator(page,action.locator);if(['click','fill','type','hover'].includes(action.type)){await loc.scrollIntoViewIfNeeded();item.boundingBox=await loc.boundingBox();}}
       if(action.type==='click'){if(!loc)throw new Error('click_locator_required');await loc.click();}
-      else if(action.type==='fill'||action.type==='type'){if(!loc)throw new Error('input_locator_required');const sensitive=await loc.evaluate(e=>e instanceof HTMLInputElement&&(['password','email','tel'].includes(e.type)||/password|cc-|one-time|email|tel/.test(e.autocomplete)));if(sensitive||/password|парол|credit|card|секрет|token/i.test(JSON.stringify(action.locator)))throw new Error('sensitive_field_capture_forbidden');await loc.fill(action.value||'');}
+      else if(action.type==='fill'||action.type==='type'){if(!loc)throw new Error('input_locator_required');const sensitive=await loc.evaluate(e=>e instanceof HTMLInputElement&&(['password','email','tel'].includes(e.type)||/password|cc-|one-time|email|tel/.test(e.autocomplete)));if(sensitive||/password|парол|credit|card|секрет|token/i.test(JSON.stringify(action.locator)))throw new Error('sensitive_field_capture_forbidden');if(action.type==='type'){await loc.fill('');await loc.pressSequentially(action.value||'',{delay:80});}else await loc.fill(action.value||'');}
       else if(action.type==='hover'){if(!loc)throw new Error('hover_locator_required');await loc.hover();}
       else if(action.type==='scroll'){await page.mouse.wheel(action.x||0,action.y||500);await page.waitForTimeout(350);}
       else if(action.type==='waitFor'){if(!loc)throw new Error('wait_locator_required');await loc.waitFor({state:'visible'});}

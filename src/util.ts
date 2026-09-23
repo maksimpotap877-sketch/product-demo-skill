@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-export const VERSION='0.3.0';
+export const VERSION='0.4.0';
 export const PACKAGE_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 export const hash=(x:unknown)=>createHash('sha256').update(typeof x==='string'||x instanceof Uint8Array?x:JSON.stringify(x)).digest('hex');
 export async function readJson<T=any>(file:string):Promise<T>{return JSON.parse(await readFile(file,'utf8'));}

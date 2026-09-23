@@ -89,3 +89,8 @@ test('successful cached or intentional reruns do not consume failure budget',asy
 test('parallel same-stage attempt is rejected and raw error text cannot enter ledger',async()=>{
   const dir=await mkdtemp(path.join(os.tmpdir(),'demo-running-'));const a=await beginStageAttempt(dir,{stage:'render',inputHash:hash('v1')});await assert.rejects(beginStageAttempt(dir,{stage:'render',inputHash:hash('v2')}),/stage_attempt_in_progress/);await assert.rejects(finishStageAttempt(dir,{attemptId:a.attemptId,status:'failed',failureCode:'password=should-not-be-logged'}),/identifier/);await finishStageAttempt(dir,{attemptId:a.attemptId,status:'passed'});
 });
+
+ test('invalid authored understanding reports missing field paths without echoing input data',async()=>{
+ const f=await fixture();const malformed:any=structuredClone(f.manifest);delete malformed.flow[0].id;await f.save(malformed);
+ const result=await validateUnderstanding(f);assert.equal(result.status,'blocked');assert.ok(result.issues.includes('analysis_schema_invalid'));assert.ok(result.issues.includes('analysis_field:flow.0.id:invalid_type:expected-string'));assert.ok(!JSON.stringify(result.issues).includes(malformed.flow[0].summary));
+});

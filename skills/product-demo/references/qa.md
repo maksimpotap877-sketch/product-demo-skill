@@ -1,13 +1,30 @@
-# Evidence and delivery
+# Приёмка конкретного экспорта
 
-`inspect --run <absolute-path>` performs technical checks and emits the quality report/contact sheet. `preview --run <absolute-path>` serves a loopback preview of allowed artifacts. It must not expose the repository root, credentials, profiles or arbitrary paths.
+`inspect --run <absolute-path>` декодирует файл, проверяет длительность, разрешение, кадры/PTS, диапазоны источников, голос и уровни конечного AAC. Создаёт контактный лист и дополнительные кадры. `preview` открывает локальную страницу результатов. Эти операции не доказывают удобство просмотра, естественность голоса и качество монтажа.
 
-Check full video/audio decode, measured resolution, duration, timestamps/frame count, source bounds, scene/event timing, narration duration, safe areas and the final encoded audio's loudness/peaks. A successful render process alone does not prove these properties. Intentional still scenes should not fail a generic freeze detector.
+## Что проверять отдельно
 
-Open the contact sheet and additional frames near clicks, scrolls, transitions, maximum zoom and the end. Confirm visible product/result, readable Russian text, accurate cursor targets, no double cursor, no login UI/DevTools and no known private fields. Assess scene variety, framing, pacing and whether the result is understandable; a technical pass does not approve the edit. A visual inspection of stills does not prove smooth motion. If normal-speed video playback or audio listening is unavailable, record those checks as `not-tested` and provide media for the user. Do not claim a neural voice sounds natural merely because synthesis and decoding succeeded.
+| Критерий | Достаточное свидетельство | Типичный дефект |
+|---|---|---|
+| Содержание | Код/сценарий и реальные состояния в видео | Названное действие или результат не показан |
+| Кадрирование | Полноразмерные кадры на склейках, действиях и крайних camera poses | Маленький текст, кроп контролов, растяжение, прыжок резкости |
+| Движение | Весь конкретный MP4 при обычной скорости с таймкодами замечаний | Рывок, телепорт курсора, пустые паузы, борьба камеры со скроллом |
+| Звук | Прослушивание всего конечного AAC, проверка произношения и совпадения с действиями | Роботизированный/неподходящий голос, обрыв, неверное ударение |
+| Техника | Декодирование, ffprobe, геометрия, фактические уровни | Потерянный звук, неверный fps/размер, повреждение |
 
-Review the export manifest, narrated text, events and visible frames for sensitive content; regex scanning is limited and is not an absolute privacy guarantee. Do not upload private media to another service as an implicit QA step.
+Контактный лист доказывает только рассмотренные неподвижные кадры. Корректные60/144PTS в секунду не доказывают60/144уникальных состояния продукта. Повтор кадров может быть намеренным неподвижным интерфейсом. Ищи дефект во время настоящего движения, сравни источник и экспорт. Нельзя объявлять замиранием весь промежуток между CDP-событиями, включающий неподвижную паузу.
 
-Report `passed`, `failed`, `blocked`, `not-tested` and `degraded` per criterion. Keep technical measurement, visual agent review and subjective audio review separate. Native capture 144, rendered animation 144, web-60 export, male synthesis and female synthesis are separate acceptance results.
+## Сохранение проверки
 
-Deliver links to the actual video, two voice samples when generated, preview and report. Include source resolution/cadence, output resolution/fps, voice provider/ID, known costs and unmet checks. A fallback file whose native-capture criterion failed must say degraded/preview in the filename/report. Preserve one exact command for the next action. Do not call the project fully verified while a key criterion is blocked or untested.
+1. `review --run <run> --init` создаёт `review/editorial-review-<profile>.draft.json` для конкретного MP4.
+2. Заполни имя проверявшего, дату, реально проверенные интервалы, метод и замечания. Укажи нерешённые дефекты с таймкодами. Нет возможности слушать или смотреть при обычной скорости — соответствующий статус остаётся `not-tested`, а notes объясняет предел проверки.
+3. `review --run <run> --file <absolute-draft-json>` сохраняет проверку. Для motion-pass требуется `normal-speed-playback` с покрытием всей длительности; для audio-pass — `listening` всей длительности. Для content/framing — `frames-and-source` и интервалы просмотренного материала.
+4. `inspect --run <run>` включает её в общий отчёт.
+
+Проверка привязана к SHA-256 и длительности файла. После изменения MP4 прежняя оценка не действует. Это структурированное свидетельство проверявшего, не автоматическая гарантия, что просмотр действительно состоялся. Не проставляй фиктивные методы и coverage ради зелёного статуса.
+
+`deliveryStatus`: `review-candidate` — что-то ещё не проверено; `changes-required` — обнаружен нерешённый дефект или техническая ошибка; `reviewed` — критерии приёмки заявлены проверявшим и техника прошла. Отдельный общий статус может остаться `degraded` из-за неподтверждённого native capture144. Он не должен скрывать качество самого монтажа.
+
+Проверь приватные поля/данные в кадрах и метаданных; regex не гарантирует отсутствие PII. Авторизацию не включай в экспорт. Приватный ролик не отправляй в сторонний сервис для QA без разрешения.
+
+Выдай сам MP4, отчёт и краткое описание изменения. Укажи measured source cadence отдельно от render fps. При отсутствующем просмотре/прослушивании выдавай честный кандидат для пользователя, а не «идеально, всё проверено». Нейросетевой провайдер сам по себе не доказывает естественность голоса.
